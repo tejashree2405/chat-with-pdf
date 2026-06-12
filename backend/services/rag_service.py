@@ -13,7 +13,30 @@ llm = ChatGroq(
 )
 
 
-def ask_question(question):
+def ask_question(
+    question,
+    history=None
+):
+    if history is None:
+        history = []
+
+    history_text = ""
+
+    for message in history[-10:]:
+
+        role = message.get(
+            "role",
+            "user"
+        )
+
+        content = message.get(
+            "content",
+            ""
+        )
+
+        history_text += (
+            f"{role}: {content}\n"
+        )
 
     question_lower = question.lower()
     
@@ -64,6 +87,9 @@ def ask_question(question):
         prompt = f"""
     You are analyzing multiple PDFs.
 
+    Conversation History:
+    {history_text}
+
     The context is organized by PDF name.
 
     If asked to summarize:
@@ -71,13 +97,13 @@ def ask_question(question):
 
     If asked to compare:
     - Compare ALL PDFs.
-    - Mention similarities.
-    - Mention differences.
+    - Mention Similarities
+    - Mention Differences
 
     Context:
     {context}
 
-    Question:
+    Current Question:
     {question}
     """
 
@@ -92,7 +118,7 @@ def ask_question(question):
                 }
                 for filename in all_documents.keys()
             ],
-            "retrieved_chunks": 0
+            "retrieved_chunks": []
         }
     
     results = retrieve_documents(question, k=4)
@@ -134,6 +160,17 @@ def ask_question(question):
             "page": doc.metadata.get("page", "Unknown")
         })
 
+    retrieved_chunks = []
+
+    for doc, score in results:
+
+        retrieved_chunks.append({
+            "pdf": doc.metadata.get("source", "Unknown"),
+            "page": doc.metadata.get("page", "Unknown"),
+            "score": round(score, 4),
+            "content": doc.page_content
+        })
+
     if not docs:
         return {
             "answer": "I could not find that information in the uploaded documents.",
@@ -152,10 +189,13 @@ If multiple PDFs are present:
 - Summarize each PDF separately.
 - Compare them when appropriate.
 
+Conversation History:
+{history_text}
+
 Context:
 {context}
 
-Question:
+Current Question:
 {question}
 """
 
@@ -164,5 +204,5 @@ Question:
     return {
         "answer": response.content,
         "sources": sources,
-        "retrieved_chunks": len(docs)
+        "retrieved_chunks": retrieved_chunks
     }

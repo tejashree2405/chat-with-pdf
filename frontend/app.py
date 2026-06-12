@@ -107,7 +107,8 @@ if question:
     response = requests.post(
         f"{BACKEND_URL}/chat",
         json={
-            "question": question
+            "question": question,
+            "history": st.session_state.messages
         }
     )
 
@@ -116,6 +117,11 @@ if question:
     answer = result["answer"]
 
     sources = result["sources"]
+    
+    retrieved_chunks = result.get(
+        "retrieved_chunks",
+        []
+    )
 
     source_text = ""
 
@@ -135,6 +141,33 @@ if question:
     with st.chat_message("assistant"):
         st.markdown(final_response)
 
+    if retrieved_chunks:
+
+        with st.expander(
+            "🔍 View Retrieved Context"
+        ):
+
+            for i, chunk in enumerate(
+                retrieved_chunks,
+                start=1
+            ):
+
+                st.markdown(
+                    f"### Chunk {i}"
+                )
+
+                st.markdown(
+                    f"**Source:** "
+                    f"{chunk['pdf']} "
+                    f"(Page {chunk['page']})"
+                )
+
+                st.code(
+                    chunk["content"][:1000]
+                )
+
+                st.divider()
+                
     st.session_state.messages.append(
         {
             "role": "assistant",
