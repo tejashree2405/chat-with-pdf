@@ -1,15 +1,21 @@
 import os
-
+import streamlit as st
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from services.document_service import load_all_documents
 from services.vectorstore_service import retrieve_documents
 
+
 load_dotenv()
+
+try:
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+except:
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 llm = ChatGroq(
     model_name="llama-3.3-70b-versatile",
-    groq_api_key=os.getenv("GROQ_API_KEY")
+    groq_api_key=GROQ_API_KEY
 )
 
 

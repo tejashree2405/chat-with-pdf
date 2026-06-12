@@ -45,3 +45,15 @@ def retrieve_context(question, k=4):
     docs = [doc for doc, score in results]
 
     return docs
+
+def clear_vectorstore():
+
+    db = get_vectorstore()
+
+    try:
+
+        db.delete_collection()
+
+    except:
+
+        pass

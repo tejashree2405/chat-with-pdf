@@ -1,7 +1,13 @@
 import streamlit as st
-import requests
+import os
 
-BACKEND_URL = "http://127.0.0.1:8000"
+from services.ingest import ingest_pdf
+from services.rag_service import ask_question
+from services.vectorstore_service import clear_vectorstore
+from services.document_service import (
+    get_uploaded_documents,
+    clear_uploaded_documents
+)
 
 st.set_page_config(
     page_title="Chat With PDF",
@@ -26,12 +32,14 @@ with st.sidebar:
 
     if st.button("Reset Knowledge Base"):
 
-        response = requests.post(
-            f"{BACKEND_URL}/reset"
-        )
+        clear_vectorstore()
+
+        clear_uploaded_documents()
+
+        st.session_state.messages = []
 
         st.success(
-            response.json()["message"]
+            "Knowledge base reset."
         )
 
     if uploaded_files:
@@ -40,18 +48,28 @@ with st.sidebar:
 
             for file in uploaded_files:
 
-                files = {
-                    "file": (
-                        file.name,
-                        file.getvalue(),
-                        "application/pdf"
-                    )
-                }
-
-                requests.post(
-                    f"{BACKEND_URL}/upload",
-                    files=files
+                os.makedirs(
+                    "data/uploads",
+                    exist_ok=True
                 )
+
+                for file in uploaded_files:
+
+                    path = os.path.join(
+                        "data/uploads",
+                        file.name
+                    )
+
+                    with open(
+                        path,
+                        "wb"
+                    ) as f:
+
+                        f.write(
+                            file.getvalue()
+                        )
+
+                    ingest_pdf(path)
 
             st.success("Documents uploaded successfully")
     
@@ -61,11 +79,7 @@ with st.sidebar:
 
     try:
 
-        response = requests.get(
-            f"{BACKEND_URL}/documents"
-        )
-
-        documents = response.json()["documents"]
+        documents = get_uploaded_documents()
 
         if documents:
 
@@ -104,15 +118,10 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
 
-    response = requests.post(
-        f"{BACKEND_URL}/chat",
-        json={
-            "question": question,
-            "history": st.session_state.messages
-        }
+    result = ask_question(
+        question,
+        st.session_state.messages
     )
-
-    result = response.json()
 
     answer = result["answer"]
 
