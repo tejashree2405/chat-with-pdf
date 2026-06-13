@@ -56,8 +56,37 @@ def ask_question(
             "all files",
             "all documents",
             "all pdfs",
+            "both",
+            "all",
+            "both files",
+            "both pdfs",
+            "both documents",
+            "these files",
+            "these documents",
+            "these pdfs",
             "compare both",
-            "compare all"
+            "compare all",
+            "what are these about",
+            "what are the documents about",
+            "describe the documents",
+            "tell me about the documents",
+            "summarize documents",
+            "summarize pdfs",
+            "summarize files",
+            "what are these about",
+            "what are the files about",
+            "what are the pdfs about",
+            "tell me about these files",
+            "tell me about these pdfs",
+            "what should i know about these files",
+            "what should i know about these documents",
+            "what should i know about these pdfs",
+            "what should i know about these",
+            "explain these",
+            "explain these files",
+            "explain these documents",
+            "explain these pdfs",
+            "what is important in these"
         ]
     )
 
@@ -86,9 +115,18 @@ def ask_question(
 
         for pdf_name, text in all_documents.items():
 
-            context += f"\n\nPDF: {pdf_name}\n"
+            summary = llm.invoke(
+                f"""
+                Summarize this PDF in 150 words.
 
-            context += text
+                {text[:5000]}
+                """
+            )
+
+            context += (
+                f"\nPDF: {pdf_name}\n"
+                f"{summary.content}\n"
+            )
 
         prompt = f"""
     You are analyzing multiple PDFs.
@@ -112,7 +150,7 @@ def ask_question(
     Current Question:
     {question}
     """
-
+        print("Prompt characters:", len(prompt))
         response = llm.invoke(prompt)
 
         return {
