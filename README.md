@@ -84,7 +84,7 @@ Streamlit chat interface with persistent session history.
 
 ---
 
-# 🏗 Architecture
+# Architecture
 
 ```text
 User
@@ -119,7 +119,7 @@ Answer + Sources
 
 ---
 
-# 🛠 Tech Stack
+# Tech Stack
 
 | Component       | Technology            |
 | --------------- | --------------------- |
@@ -160,7 +160,7 @@ chat-with-pdf/
 
 ---
 
-# ⚙️ Local Installation
+# Local Installation
 
 ## 1. Clone Repository
 
