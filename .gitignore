@@ -7,10 +7,10 @@ __pycache__/
 .env
 
 # Chroma DB
-backend/chroma_db/
+chroma_db/
 
 # Uploaded PDFs
-backend/data/uploads/
+data/uploads/
 
 # Streamlit cache
 .streamlit/
